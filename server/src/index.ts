@@ -3,8 +3,10 @@ import cors from "cors";
 import Gun from "gun";
 import { initializeDB, putValue } from "./utils/orbitDbInterface";
 import setupSwagger from "./utils/swaggerSetup";
-import allRouter from "./routes/allRouter";
 import md5 from "md5";
+import messagesRouter from "./routes/messagesRouter";
+import colorsRouter from "./routes/colorsRouter";
+import namer from "color-namer";
 
 const main = async () => {
   const app = express();
@@ -17,7 +19,8 @@ const main = async () => {
   app.use(express.json());
   const port = 3030;
 
-  app.use("/api", allRouter);
+  app.use("/api", messagesRouter);
+  app.use("/api", colorsRouter);
 
   setupSwagger(app);
 
@@ -27,6 +30,7 @@ const main = async () => {
 
   const gun = Gun({
     web: server,
+    radisk: false,
   });
 
   await initializeDB();
@@ -37,9 +41,33 @@ const main = async () => {
     .on((val) => {
       if (val) {
         const { _, ...pureVal } = { ...val } as Record<string, any>;
-        putValue({ id: md5(JSON.stringify(pureVal)), ...pureVal });
+        putValue({
+          type: "message",
+          id: md5(JSON.stringify(pureVal)),
+          ...pureVal,
+        });
       }
     });
+
+  gun
+    .get("color")
+    .map()
+    .on((val) => {
+      if (val) {
+        const colorData = {
+          type: "color",
+          color: val,
+          name: namer(val).pantone[0].name,
+          createdAt: Date.now(),
+          colorUrl: `https://singlecolorimage.com/get/${val.slice(1)}/50x50`,
+        };
+
+        putValue({
+          id: md5(JSON.stringify(colorData)),
+          ...colorData,
+        });
+      }
+    }, true);
 };
 
 main();

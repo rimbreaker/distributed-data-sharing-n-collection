@@ -1,19 +1,20 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 import Gun from 'gun';
 import './App.css';
+import { HexColorPicker } from 'react-colorful';
+import namer from 'color-namer'
 
 const gun = Gun({
   peers: [
-    'http://localhost:3030/gun', 'http://localhost:3000'
-  ],
-  // localStorage: false
+    'http://localhost:3030/gun'
+  ], localStorage: false
 })
 
 const initialState = {
   messages: []
 }
 
-function reducer(state: any, action: any) {
+function messageReducer(state: any, action: any) {
   switch (action.type) {
     case 'ADD':
       return {
@@ -31,19 +32,35 @@ function reducer(state: any, action: any) {
 
 }
 
+function colorReducer(_state: string, color: string) {
+  return color
+}
+
 function App() {
+  const backGroundRef = useRef<HTMLElement | null>(null)
   const [formState, setForm] = useState({
     name: '', message: ''
   })
 
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [messageState, dispatch] = useReducer(messageReducer, initialState)
+  const [colorState, dispatchColor] = useReducer(colorReducer, "#aabbcc")
+
   const [messagesInterface, setMessagesInterface] = useState<any>(null)
+  const [color, setColor] = useState("#aabbcc")
+
+  const colorName = namer(color).pantone[0].name
+
 
   useEffect(() => {
     const messages = gun.get('messages')
+
+    gun.get('color').on(col => {
+      dispatchColor(col.sync)
+    }, { change: true })
+
     messages.map().on((m, id) => {
       if (m) {
-        if (!state.messages.find(mes => mes.id === id))
+        if (!messageState.messages.find(mes => mes.id === id))
           dispatch({
             type: 'ADD',
             payload: {
@@ -58,12 +75,10 @@ function App() {
         dispatch({ type: 'REMOVE', payload: id })
       }
 
-    })
-
+    }, { change: true })
     setMessagesInterface(messages)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
 
   function saveMessage() {
     messagesInterface.set({
@@ -86,10 +101,34 @@ function App() {
     window.location.reload()
   }
 
+  const changeBackgroundColor = (col: string) => {
+    if (backGroundRef.current)
+      backGroundRef.current.style.backgroundColor = col
+  }
+
+  useEffect(() => {
+    if (backGroundRef.current)
+      backGroundRef.current.style.backgroundColor = colorState
+    setColor(colorState)
+
+  }, [colorState])
+
   return (
     <div className="App">
-      <header className="App-header">
+      <header className="App-header" ref={backGroundRef}>
         <div style={{ padding: 30 }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-evenly'
+          }}>
+            <HexColorPicker color={color} onChange={(col) => {
+              setColor(col);
+              changeBackgroundColor(col)
+            }} onMouseUp={() => gun.get('color').put({ sync: color })} />
+          </div>
+          <p>
+            {colorName}
+          </p>
           <input
             onChange={onChange}
             placeholder="Name"
@@ -104,11 +143,22 @@ function App() {
           />
           <button onClick={saveMessage}>Send Message</button>
           {
-            state.messages.map(message => (
-              <div key={message.createdAt}>
-                <h2>{message.message}</h2>
-                <h3>From: {message.name}</h3>
-                <p>Date: {new Date(message.createdAt).toString()}</p>
+            messageState.messages.sort((a, b) => a.createdAt > b.createdAt ? -1 : 1).map(message => (
+              <div key={message.createdAt} style={{
+                height: '20vh',
+                borderRadius: "0.3rem",
+                borderBottom: "0.1em white solid"
+              }}>
+                <div style={{
+                  display: 'flex',
+                  width: '50vw',
+                  height: '5vh',
+                  justifyContent: 'space-between'
+                }}>
+                  <h6>From: {message.name}</h6>
+                  <h6>Sent: {new Date(message.createdAt).toString().split(" ").slice(0, 5).join(" ")}</h6>
+                </div>
+                <h3>{message.message}</h3>
                 <button onClick={() => deleteMessage(message.id)}>delete message</button>
               </div>
             ))

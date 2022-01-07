@@ -1,5 +1,5 @@
 import React from 'react'
-import { List, Datagrid, TextField, DateField, EditButton, DeleteButton } from 'react-admin'
+import { List, Datagrid, TextField, DateField, DeleteButton } from 'react-admin'
 
 const MessageList = (props: any) => {
     return (
@@ -8,8 +8,7 @@ const MessageList = (props: any) => {
                 <DateField source='createdAt' />
                 <TextField source='name' />
                 <TextField source='message' />
-                <EditButton basePath='/messages' />
-                <DeleteButton basePath='/messages' />
+                <DeleteButton basePath='/message' />
             </Datagrid>
         </List>
     )

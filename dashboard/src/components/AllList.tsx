@@ -2,6 +2,7 @@ import React from 'react'
 import { List, Datagrid, TextField, DateField, DeleteButton } from 'react-admin'
 
 const AllList = (props: any) => {
+    console.log(props)
     return (
         <List {...props}>
             <Datagrid>

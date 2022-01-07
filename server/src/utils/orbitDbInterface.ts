@@ -13,7 +13,7 @@ export const initializeDB = async () => {
 
   const orbitdb = await OrbitDB.createInstance(ipfs);
 
-  db = await orbitdb.docs("messenges2", {
+  db = await orbitdb.docs("distributed", {
     indexBy: "id",
   });
   await db.load();
