@@ -53,9 +53,3 @@ The projec has no automated test for now, but for easier manual testing you can 
 ### Technical intro
 
 Application is writen entirely in Typescript. Backend is composed of simple GunJS setup server, IPFS database interface and minimal Rest API for dashboard. Client application uses real time WebRTC protocol GunJS database which updates state of each peer in real time. The third app is simple dashboard for viewing all the data persisted from server to document OrbitDB database. Both client applications use React library
-
-### Architecture
-
-Data layer is separated from visual layer of the application via sagas. The fetch functions are only trigerred inside sagas, and visual components can only trigger actions sending data to redux store. All sagas include fallbacks and preventions to ensure as smooth usage of application as possible.
-
-State is persisted in localStorage in case of users exit. For a potential PWA it is a crucial feature.
