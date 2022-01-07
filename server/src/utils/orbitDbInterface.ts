@@ -17,12 +17,14 @@ export const initializeDB = async () => {
     indexBy: "id",
   });
   await db.load();
+  console.log("IPFS database available at: " + db.address);
 
   return db;
 };
 
 export const putValue = async (object: Record<string, unknown>) => {
-  await db.put(object);
+  const entityHref = await db.put(object);
+  console.log("new data's hash: " + entityHref);
 };
 
 export const getAllValues = async () => {

@@ -5,7 +5,7 @@ const getAllColors = async (_: Request, res: Response) => {
   const data = await queryForValue((doc) => doc.type === "color");
   const range = data.length;
   res.header("content-range", `posts 0-${range}/${range}`);
-  res.send(data);
+  res.send(data.sort((a: any, b: any) => (a.createdAt > b.createdAt ? -1 : 1)));
 };
 
 const deleteColor = async (req: Request, res: Response) => {

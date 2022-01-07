@@ -47,7 +47,7 @@ const main = async () => {
           ...pureVal,
         });
       }
-    });
+    }, true);
 
   gun
     .get("color")
